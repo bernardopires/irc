@@ -236,6 +236,20 @@ class IRCConnection(object):
             if result:
                 self.respond(result, nick=nick)
 
+    def get_data(self):
+        try:
+            return self._sock_file.readline()
+        except socket.error:
+            return None
+
+    def dispatch_data(self, data, patterns):
+        data = data.rstrip()
+
+        for pattern, callback in patterns:
+            match = pattern.match(data)
+            if match:
+                callback(**match.groupdict())
+
     def enter_event_loop(self):
         """\
         Main loop of the IRCConnection - reads from the socket and dispatches
@@ -245,22 +259,15 @@ class IRCConnection(object):
         self.logger.debug('entering receive loop')
 
         while 1:
-            try:
-                data = self._sock_file.readline()
-            except socket.error:
-                data = None
+            data = self.get_data()
 
             if not data:
                 self.logger.info('server closed connection')
                 self.close()
                 return True
 
-            data = data.rstrip()
+            self.dispatch_data(data, patterns)
 
-            for pattern, callback in patterns:
-                match = pattern.match(data)
-                if match:
-                    callback(**match.groupdict())
 
 
 class IRCBot(object):
@@ -269,6 +276,7 @@ class IRCBot(object):
     of registering callbacks and scripting IRC interactions
     """
     def __init__(self, conn):
+        super(IRCBot, self).__init__()
         self.conn = conn
 
         # register callbacks with the connection
