@@ -59,7 +59,7 @@ class IRCConnection(object):
             handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
             log.addHandler(handler)
 
-        if self.verbosity == 2 or not self.logfile:
+        if (self.verbosity == 2 or not self.logfile) and not log.handlers:
             stream_handler = logging.StreamHandler()
             stream_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
             log.addHandler(stream_handler)
