@@ -98,6 +98,7 @@ class IRCConnection(object):
         return True
 
     def close(self):
+        self._sock.shutdown(socket.SHUT_RDWR)  # force shutdown
         self._sock.close()
 
     def set_password(self):
