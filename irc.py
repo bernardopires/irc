@@ -88,7 +88,7 @@ class IRCConnection(object):
         """
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._sock.setblocking(0)
-        self._sock.settimeout(SOCKET_TIMEOUT_SECONDS)
+        self._sock.settimeout(self.SOCKET_TIMEOUT_SECONDS)
         try:
             self._sock.connect((self.server, self.port))
         except socket.error:
