@@ -4,6 +4,7 @@ import random
 import re
 import sys
 import time
+import select
 
 try:
     from gevent import socket
@@ -35,6 +36,8 @@ class IRCConnection(object):
         1: logging.INFO,
         2: logging.DEBUG,
     }
+
+    SOCKET_TIMEOUT_SECONDS = 1
 
     def __init__(self, server, port, nick, password=None, logfile=None, verbosity=1, needs_registration=True):
         self.server = server
@@ -84,6 +87,8 @@ class IRCConnection(object):
         Connect to the IRC server using the nickname
         """
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._sock.setblocking(0)
+        self._sock.settimeout(SOCKET_TIMEOUT_SECONDS)
         try:
             self._sock.connect((self.server, self.port))
         except socket.error:
@@ -240,8 +245,10 @@ class IRCConnection(object):
     def get_data(self):
         try:
             return self._sock_file.readline()
-        except socket.error:
-            return None
+        except socket.timeout as e:
+            return ""
+        except socket.error as e:
+            raise DisconnectedException("Disconnected from server.")
 
     def dispatch_data(self, data, patterns):
         data = data.rstrip()
@@ -359,3 +366,7 @@ class SimpleSerialize(object):
 
     def deserialize(self, string):
         return dict((piece.split(':', 1) for piece in string.split('|')))
+
+
+class DisconnectedException(Exception):
+    pass
