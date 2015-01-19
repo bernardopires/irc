@@ -57,14 +57,14 @@ class IRCConnection(object):
         log = logging.getLogger(logger_name)
         log.setLevel(self.verbosity_map.get(self.verbosity, logging.INFO))
 
-        if self.logfile:
+        if self.logfile and not log.handlers:
             handler = RotatingFileHandler(filename, maxBytes=1024*1024, backupCount=2)
             handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
             log.addHandler(handler)
 
         if (self.verbosity == 2 or not self.logfile) and not log.handlers:
             stream_handler = logging.StreamHandler()
-            stream_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+            stream_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
             log.addHandler(stream_handler)
 
         return log
