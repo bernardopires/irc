@@ -77,8 +77,11 @@ class IRCConnection(object):
         registration status.
         """
         if self._registered or force:
-            self._sock_file.write('%s\r\n' % data)
-            self._sock_file.flush()
+            try:
+                self._sock_file.write('%s\r\n' % data)
+                self._sock_file.flush()
+            except socket.error:
+                raise DisconnectedException("Disconnected from server.")
         else:
             self._out_buffer.append(data)
 
@@ -244,7 +247,10 @@ class IRCConnection(object):
 
     def get_data(self):
         try:
-            return self._sock_file.readline()
+            data = self._sock_file.readline()
+            if not data:
+                raise DisconnectedException("Disconnected from server.")
+            return data
         except socket.timeout as e:
             return ""
         except socket.error as e:
